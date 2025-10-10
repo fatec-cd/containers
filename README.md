@@ -68,7 +68,7 @@ Você pode realizar este laboratório de duas formas:
 1. Crie uma conta gratuita no **Docker Hub**: [https://hub.docker.com](https://hub.docker.com)
 2. Acesse **[Play With Docker (PWD)](https://labs.play-with-docker.com)**  
    - Clique em **"Start"**  
-   - Aguarde a abertura de um terminal Linux online (válido por 4h)
+   - Aguarde a abertura de um terminal Linux online (válido por 2h)
    - **Limitações:** Sem persistência após 4h, recursos limitados
 
 ### 💻 Opção 2 – Docker Desktop (Windows/Mac/Linux)
