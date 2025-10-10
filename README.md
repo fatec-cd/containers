@@ -332,20 +332,8 @@ docker ps -l
 # Ver todos os logs do container
 docker logs webserver
 
-# Seguir logs em tempo real (como tail -f)
-docker logs -f webserver
-
-# Últimas 20 linhas + follow
-docker logs -f --tail 20 webserver
-
-# Logs com timestamp
-docker logs -t webserver
-
-# Logs desde uma data específica
-docker logs --since 2024-01-01 webserver
 ```
 
-**Teste:** Acesse `http://localhost:8080` várias vezes e observe os logs em tempo real.
 
 ---
 
@@ -370,12 +358,6 @@ exit
 
 **Recarregue o navegador** → Você verá a página modificada!
 
-**Alternativa sem entrar no container:**
-```bash
-# Executar comando único sem shell interativo
-docker exec webserver ls /usr/share/nginx/html
-docker exec webserver cat /etc/nginx/nginx.conf
-```
 
 ---
 
@@ -413,92 +395,18 @@ docker kill webserver
 - `stop`: Envia SIGTERM, aguarda 10s, depois SIGKILL (graceful)
 - `kill`: Envia SIGKILL imediatamente (forçado)
 
----
 
-### 📹 Passo 7 – Inspecionar containers detalhadamente
-
-```bash
-# Visão geral formatada
-docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-
-# Informações completas em JSON
-docker inspect webserver
-
-# Extrair informações específicas com filtros
-docker inspect --format='{{.State.Status}}' webserver
-docker inspect --format='{{.NetworkSettings.IPAddress}}' webserver
-docker inspect --format='{{.Config.Image}}' webserver
-
-# Ver estatísticas em tempo real (CPU, RAM, rede)
-docker stats webserver
-
-# Ver processos rodando dentro do container
-docker top webserver
-```
 
 ---
 
-### 📹 Passo 8 – Container interativo BusyBox (modo completo)
-
-#### O que é BusyBox?
-
-**BusyBox** é conhecido como "O canivete suíço do Linux Embarcado". É uma única aplicação que combina versões minimalistas de mais de 300 utilitários Unix comuns (como `ls`, `cat`, `grep`, `wget`, etc.) em um único executável extremamente pequeno (~1-2 MB).
-
-**Características:**
-- **Leve:** Imagem Docker de apenas ~1-5 MB (vs. Ubuntu ~77 MB)
-- **Rápido:** Ideal para testes rápidos e containers efêmeros
-- **Completo:** Possui ferramentas essenciais para debugging
-- **Uso comum:** Containers de inicialização, jobs temporários, testes
-
-**Por que usar no laboratório?**
-- Demonstra a leveza dos containers
-- Perfeito para praticar modo interativo
-- Download instantâneo
-- Ambiente Linux minimalista para exploração
-
-```bash
-# BusyBox: Linux minimalista (~1MB)
-docker run --name testbox -it busybox sh
-
-# Você está dentro! Explore:
-ls /
-pwd
-ps
-df -h
-whoami
-uname -a
-date
-
-# Criar um arquivo
-echo "Teste Docker" > /tmp/teste.txt
-cat /tmp/teste.txt
-
-# Sair do container (ele para ao sair)
-exit
-
-# Container parou porque o processo principal (sh) terminou
-docker ps -a
-# STATUS: Exited (0)
-
-# Iniciar novamente e conectar
-docker start testbox
-docker attach testbox  # Conecta ao processo principal
-
-# Ou executar novo shell
-docker start testbox
-docker exec -it testbox sh
-```
-
----
-
-### 📹 Passo 9 – Remover containers e imagens
+### 📹 Passo 7 – Remover containers e imagens
 
 ```bash
 # Parar containers em execução
-docker stop webserver testbox
+docker stop webserver
 
 # Remover containers específicos
-docker rm webserver testbox
+docker rm webserver 
 
 # Remover container à força (sem stop)
 docker rm -f container_name
@@ -517,40 +425,6 @@ docker image prune
 
 # CUIDADO: Remover tudo (containers, imagens, volumes, redes)
 docker system prune -a --volumes
-```
-
----
-
-### 📹 Passo 10 – Trabalhando com volumes (persistência)
-
-```bash
-# Criar um volume nomeado
-docker volume create dados-web
-
-# Listar volumes
-docker volume ls
-
-# Executar NGINX com volume persistente
-docker run -d --name web-persistente \
-  -p 8080:80 \
-  -v dados-web:/usr/share/nginx/html \
-  nginx
-
-# Adicionar conteúdo ao volume
-docker exec web-persistente sh -c \
-  'echo "<h1>Dados Persistentes</h1>" > /usr/share/nginx/html/index.html'
-
-# Parar e remover o container
-docker stop web-persistente
-docker rm web-persistente
-
-# Criar NOVO container com o MESMO volume
-docker run -d --name web-novo \
-  -p 8080:80 \
-  -v dados-web:/usr/share/nginx/html \
-  nginx
-
-# O conteúdo persiste! Acesse localhost:8080
 ```
 
 ---
@@ -612,30 +486,8 @@ docker run -d --name meuweb -p 8080:80 -v %cd%:/usr/share/nginx/html:ro nginx
 
 **✅ Resultado esperado:** Você deve visualizar a página HTML do repositório sendo servida pelo NGINX.
 
-#### 5. Testar modificações em tempo real
 
-```bash
-# Edite qualquer arquivo HTML no diretório do repositório
-# Por exemplo, modifique o index.html
-
-# Recarregue o navegador
-# As mudanças aparecem imediatamente (bind mount em ação!)
-```
-
-#### 6. Verificar logs e status
-
-```bash
-# Ver logs de acesso do NGINX
-docker logs meuweb
-
-# Verificar status do container
-docker ps
-
-# Ver estatísticas de uso
-docker stats meuweb --no-stream
-```
-
-#### 7. Limpar o ambiente
+#### 5. Limpar o ambiente
 
 ```bash
 # Parar e remover o container
@@ -650,19 +502,14 @@ ls pratica-docker/
 
 ## 📤 6. Entrega da Atividade
 
-Envie no **Microsoft Teams** u
+Envie no **Microsoft Teams** 
 
-### 📁 Arquivos obrigatórios:
-
-1. **`comandos.txt`**
-   - Todos os comandos executados
-
-2. **Screenshots** :
+1. **Screenshots** :
    - Página do NGINX padrão rodando
    - Página modificada (Passo 5)
    - Atividade final em execução
 
-3. **`respostas.txt`** com as questões abaixo (200-300 palavras):
+2. **`respostas.txt`** com as questões abaixo:
 
 #### Questões obrigatórias:
 
@@ -674,7 +521,6 @@ Envie no **Microsoft Teams** u
 
 **Q4.** Como um container pode ser identificado? Explique as três formas e quando usar cada uma.
 
-**Q5.** O que acontece com os dados dentro de um container quando ele é removido? Como garantir persistência?
 
 ---
 
@@ -764,7 +610,6 @@ Antes de finalizar, verifique se você:
 - [ ] Modificou o conteúdo da página usando `docker exec`
 - [ ] Criou o servidor web personalizado (atividade final)
 - [ ] Capturou as screenshots necessárias
-- [ ] Documentou todos os comandos em `comandos.txt`
 - [ ] Respondeu às questões em `respostas.txt`
 
 ---
@@ -775,6 +620,4 @@ Antes de finalizar, verifique se você:
 
 ---
 
-**Versão:** 2.0  
-**Última atualização:** Outubro 2025  
-**Autor:** Material didático - Laboratório de Computação em Nuvem
+
