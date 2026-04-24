@@ -106,16 +106,6 @@ Você pode realizar este laboratório de três formas, com uma opção online of
    docker info
    ```
 
-### 🧪 Opção 3 – Killercoda (online, alternativa secundária)
-
-O **Killercoda** oferece playgrounds online para laboratórios com containers sem instalação local. Ele pode ser usado como alternativa rápida, mas **não é o caminho oficial deste roteiro**, porque a experiência depende do playground escolhido e não fica tão integrada ao repositório quanto o Codespaces.
-
-Use esta opção apenas se:
-- você já tiver um playground Docker apropriado disponível;
-- aceitar uma experiência mais efêmera;
-- não precisar da mesma reprodutibilidade do ambiente configurado no Codespaces.
-
----
 
 ## 🎯 3. Conceitos Essenciais: Identificação e Modos de Execução
 
