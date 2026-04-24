@@ -375,7 +375,7 @@ docker exec -it webserver bash
 cat /usr/share/nginx/html/index.html
 
 # Modificar a página principal
-echo '<h1>🐳 Docker é fácil!</h1><p>Modificado em tempo real!</p>' > /usr/share/nginx/html/index.html
+echo '<h1>🐳 Sei tudo sobre DOCKER!</h1><p>Modificado em tempo real!</p>' > /usr/share/nginx/html/index.html
 
 # Sair do container (ele continua rodando)
 exit
