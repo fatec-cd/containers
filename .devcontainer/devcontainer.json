@@ -8,11 +8,15 @@
       "dockerDashComposeVersion": "v2"
     }
   },
-  "forwardPorts": [8080],
+  "forwardPorts": [8080, 8081],
   "portsAttributes": {
     "8080": {
-      "label": "NGINX",
+      "label": "NGINX (Passo 2)",
       "onAutoForward": "openPreview"
+    },
+    "8081": {
+      "label": "NGINX personalizado (Atividade Final)",
+      "onAutoForward": "notify"
     }
   },
   "customizations": {

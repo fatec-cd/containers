@@ -19,7 +19,7 @@ Ao contrário de uma **máquina virtual**, que virtualiza um sistema operacional
 | Virtualização             | Hardware completo (via hypervisor)  | Nível de sistema operacional           |
 | Tempo de inicialização    | Minutos                             | Segundos (ou milissegundos)            |
 | Tamanho típico            | Vários GB (5-20 GB)                 | Centenas de MB ou menos                |
-| Isolamento                | Total (SO próprio)                  | Parcial (namespaces e cgroups)         |
+| Isolamento                | Total (SO próprio)                  | Isolamento de processo (namespaces + cgroups) |
 | Eficiência de recursos    | Menor (overhead significativo)      | Maior (compartilha kernel)             |
 | Densidade                 | Dezenas por host                    | Centenas por host                      |
 | Portabilidade             | Limitada (formato específico)       | Alta (OCI padrão)                      |
@@ -58,6 +58,8 @@ Ao contrário de uma **máquina virtual**, que virtualiza um sistema operacional
 └─────────────────────────────────────────────┘
 ```
 
+> **Legenda:** *Imagens* são modelos (read-only); *containers* são instâncias em execução de uma imagem.
+
 ---
 
 ## ⚙️ 2. Pré-requisitos
@@ -80,7 +82,8 @@ Você pode realizar este laboratório de três formas, com uma opção online of
 
 **Observações importantes:**
 - O Codespaces executa um ambiente Linux hospedado na nuvem.
-- A porta `8080` já fica configurada para encaminhamento automático neste repositório.
+- As portas `8080` e `8081` já ficam configuradas para encaminhamento automático neste repositório.
+- Se ao abrir a URL encaminhada aparecer tela de login do GitHub, a porta está **privada**. Na aba **PORTS**, clique com o botão direito na porta → **Port Visibility → Public** para liberar o acesso (necessário, por exemplo, para tirar screenshots em aba anônima).
 - Se o Docker não estiver disponível logo após abrir o ambiente, execute **Codespaces: Rebuild Container**.
 - Contas pessoais possuem franquia mensal; após o limite, o uso pode exigir forma de pagamento ou orçamento da organização.
 
@@ -93,7 +96,8 @@ Você pode realizar este laboratório de três formas, com uma opção online of
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
-   # Reinicie a sessão para aplicar permissões
+   # Reinicie a sessão para aplicar permissões,
+   # ou rode `newgrp docker` para aplicar sem logout.
    ```
 
 3. **Verifique a instalação:**
@@ -122,6 +126,7 @@ Todo container Docker pode ser identificado de **três formas diferentes**:
 #### 1. Container ID (Hash Completo)
 - Hash SHA256 de 64 caracteres
 - Exemplo: `a3f5b8c7e9d1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2`
+- Gerado aleatoriamente pelo Docker a cada novo container
 - Raramente usado na prática (muito longo)
 
 #### 2. Short ID (Hash Curto)
@@ -271,9 +276,21 @@ docker exec -it ubuntu-server bash
 
 **⚠️ Importante:** Durante a execução, registre cada comando e observação em um arquivo `comandos.txt`.
 
+**Modelo sugerido para `comandos.txt`:**
+
+```text
+# Passo 1 – hello-world
+docker run hello-world
+# Observação: Docker baixou a imagem e exibiu a mensagem de confirmação.
+
+# Passo 2 – NGINX detached
+docker run -d --name webserver -p 8080:80 nginx:1.27
+# Observação: container iniciado em background, porta 8080 mapeada.
+```
+
 ---
 
-### 📹 Passo 1 – Executar o container "Hello World"
+### 🔹 Passo 1 – Executar o container "Hello World"
 
 ```bash
 docker run hello-world
@@ -298,10 +315,10 @@ docker ps -a
 
 ---
 
-### 📹 Passo 2 – Criar um servidor web NGINX (modo detached)
+### 🔹 Passo 2 – Criar um servidor web NGINX (modo detached)
 
 ```bash
-docker run -d --name webserver -p 8080:80 nginx
+docker run -d --name webserver -p 8080:80 nginx:1.27
 ```
 
 **Detalhamento das flags:**
@@ -310,7 +327,7 @@ docker run -d --name webserver -p 8080:80 nginx
 - `-p 8080:80`: **Port mapping** (host:container)
   - `8080`: Porta no seu computador (host)
   - `80`: Porta dentro do container
-- `nginx`: Nome da imagem a ser usada
+- `nginx:1.27`: Nome da imagem e **tag de versão** fixada (boa prática: evite `latest` em produção)
 
 **Acessar o servidor:**
 - **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8080`, ou use o link automático exibido no terminal para `localhost:8080`
@@ -320,7 +337,7 @@ docker run -d --name webserver -p 8080:80 nginx
 
 ---
 
-### 📹 Passo 3 – Listar containers (entendendo os estados)
+### 🔹 Passo 3 – Listar containers (entendendo os estados)
 
 ```bash
 # Containers em execução (running)
@@ -351,22 +368,15 @@ docker ps -l
 
 ---
 
-### 📹 Passo 4 – Trabalhar com logs
-
-```bash
-# Ver todos os logs do container
-docker logs webserver
-
-```
-
-
----
-
-### 📹 Passo 5 – Modo interativo: Acessar e modificar o container
+### 🔹 Passo 4 – Modo interativo: Acessar e modificar o container
 
 ```bash
 # Conectar ao container em modo interativo
 docker exec -it webserver bash
+
+# Se estiver usando uma imagem baseada em Alpine (ex.: nginx:alpine),
+# substitua `bash` por `sh`, pois Alpine não traz bash por padrão:
+#   docker exec -it webserver sh
 
 # Agora você está DENTRO do container!
 # O prompt mudará para algo como: root@a3f5b8c7e9d1:/#
@@ -386,7 +396,7 @@ exit
 
 ---
 
-### 📹 Passo 6 – Gerenciar ciclo de vida do container
+### 🔹 Passo 5 – Gerenciar ciclo de vida do container
 
 ```bash
 # Parar o container (graceful shutdown)
@@ -420,35 +430,32 @@ docker kill webserver
 - `stop`: Envia SIGTERM, aguarda 10s, depois SIGKILL (graceful)
 - `kill`: Envia SIGKILL imediatamente (forçado)
 
-
+> Após `docker kill`, o container fica em estado `Exited`. Antes de seguir para o Passo 6, reinicie-o para garantir um estado consistente:
+>
+> ```bash
+> docker start webserver
+> ```
 
 ---
 
-### 📹 Passo 7 – Remover containers e imagens
+### 🔹 Passo 6 – Remover containers (limpeza parcial)
+
+> A limpeza de **imagens** foi movida para o final do roteiro (após a Atividade Final), porque a imagem `nginx` ainda será reutilizada.
 
 ```bash
-# Parar containers em execução
-docker stop webserver
-
-# Remover o container especificamente
+# Remover o container (já para automaticamente se estiver rodando)
 docker rm -f webserver
 
 # Remover TODOS os containers parados
 docker container prune
 
-# Listar imagens baixadas
+# Listar imagens baixadas (apenas para inspecionar)
 docker images
-
-# Remover imagens específicas
-docker rmi nginx busybox hello-world
-
-# Relatar o espaço consumido por imagens e limpá-las caso não em uso
-docker image prune
 ```
 
 ## 🌐 5. Atividade Final – Servidor Web Personalizado
 
-#### 1. Clonar o repositório de exemplo
+### 1. Clonar o repositório de exemplo
 
 Para termos arquivos reais de um site rodando facilmente em nossa aplicação:
 
@@ -458,31 +465,38 @@ git clone https://github.com/fatec-cd/pratica-docker.git
 cd pratica-docker
 ```
 
+> **⚠️ Se o repositório acima não estiver acessível** (404/privado) **ou não contiver `index.html` na raiz**, crie rapidamente um conteúdo local e prossiga a partir dele:
+>
+> ```bash
+> mkdir pratica-docker && cd pratica-docker
+> echo '<h1>🐳 Meu site no NGINX</h1><p>Servido via bind mount.</p>' > index.html
+> ```
+
 **📝 Nota para Windows:**
 - Se não tiver Git instalado, baixe em: [https://git-scm.com/download/win](https://git-scm.com/download/win)
 - Ou baixe o ZIP do repositório diretamente no GitHub e extraia
 
-#### 2. Executar NGINX com bind mount
+### 2. Executar NGINX com bind mount
 
 **Linux/macOS/GitHub Codespaces:**
 ```bash
 docker run -d --name meuweb \
   -p 8081:80 \
   -v $(pwd):/usr/share/nginx/html:ro \
-  nginx
+  nginx:1.27
 ```
 
 **Windows (PowerShell):**
-```bash
-docker run -d --name meuweb -p 8081:80 -v ${PWD}:/usr/share/nginx/html:ro nginx
+```powershell
+docker run -d --name meuweb -p 8081:80 -v ${PWD}:/usr/share/nginx/html:ro nginx:1.27
 ```
 
 **Windows (CMD):**
-```bash
-docker run -d --name meuweb -p 8081:80 -v %cd%:/usr/share/nginx/html:ro nginx
+```bat
+docker run -d --name meuweb -p 8081:80 -v %cd%:/usr/share/nginx/html:ro nginx:1.27
 ```
 
-#### 3. Entendendo o comando
+### 3. Entendendo o comando
 
 **Detalhamento das flags:**
 - `-d`: Modo detached (background)
@@ -492,16 +506,16 @@ docker run -d --name meuweb -p 8081:80 -v %cd%:/usr/share/nginx/html:ro nginx
   - `$(pwd)` ou `${PWD}`: Diretório atual (onde está o repositório)
   - `/usr/share/nginx/html`: Diretório padrão do NGINX no container
   - `:ro`: **Read-only** - container só pode ler, não modificar
-- `nginx`: Imagem oficial do NGINX baseado em Linux (Debian)
+- `nginx:1.27`: Imagem oficial do NGINX (versão fixada) baseada em Debian
 
-#### 4. Acessar a aplicação
+### 4. Acessar a aplicação
 
 - **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8081`, ou use o link automático gerado para `localhost:8081`
 - **Docker Desktop:** Acesse [http://localhost:8081](http://localhost:8081)
 
 **✅ Resultado esperado:** Você deve visualizar a página HTML do repositório sendo servida pelo NGINX.
 
-#### 5. Limpar o ambiente
+### 5. Limpar o ambiente
 
 ```bash
 # Parar e remover o container
@@ -511,19 +525,31 @@ docker rm meuweb
 # Voltar um nível e conferir os dados originais intactos
 cd ..
 ls pratica-docker/
+
+# Confirmar que não há mais containers do laboratório
+docker ps -a
 ```
 
+### 6. Limpeza final de imagens (opcional)
+
+```bash
+# Remover imagens específicas usadas no laboratório
+docker rmi nginx:1.27 hello-world
+
+# Relatar o espaço consumido por imagens e remover as não utilizadas
+docker image prune
+```
 
 ## 📤 6. Entrega da Atividade
 
 Envie no **Microsoft Teams** 
 
-1. **`comandos.txt`**: O arquivo com o histórico dos comandos executados durante o laboratório (conforme solicitado no Passo 4).
+1. **`comandos.txt`**: O arquivo com o histórico dos comandos executados durante o laboratório (conforme solicitado no início da **Seção 4**).
 
-2. **Screenshots** :
-   - Página do NGINX padrão rodando (porta 8080)
-   - Página modificada (Passo 5)
-   - Atividade final em execução (porta 8081)
+2. **Screenshots** (arquivos PNG, com os nomes sugeridos):
+   - `screenshot-passo2.png` — Página padrão do NGINX rodando (porta 8080)
+   - `screenshot-passo5.png` — Página modificada via `docker exec`
+   - `screenshot-final.png` — Atividade final em execução (porta 8081)
 
 3. **`respostas.txt`** com as questões abaixo:
 
@@ -533,7 +559,7 @@ Envie no **Microsoft Teams**
 
 **Q2.** Explique a diferença entre executar um container em modo interativo (`-it`) e em modo detached (`-d`). Cite dois exemplos de uso para cada modo.
 
-**Q3.** Cite três vantagens de executar containers em modo detached.
+**Q3.** Explique o que faz a flag `-p 8080:80` no `docker run`. O que aconteceria se você tentasse iniciar um segundo container usando também `-p 8080:80` na mesma máquina? Como poderia contornar?
 
 **Q4.** Como um container pode ser identificado? Explique as três formas e quando usar cada uma.
 
@@ -556,7 +582,7 @@ Envie no **Microsoft Teams**
 
 | Problema | Solução |
 |----------|---------|
-| "Port already allocated" | Outra aplicação usando a porta. Use porta diferente ou `docker stop` no container conflitante |
+| "Port already allocated" | Outra aplicação usando a porta. Descubra o container conflitante com `docker ps --filter "publish=8080"` e pare-o com `docker stop`, ou use outra porta no host (ex.: `-p 8090:80`) |
 | "Cannot connect to Docker daemon" | No Docker Desktop, verifique se o serviço está rodando. No GitHub Codespaces, reconstrua o dev container se o Docker não tiver iniciado corretamente |
 | Porta `8080` não abre no Codespaces | Abra a aba **PORTS**, confirme se a porta foi encaminhada e clique no link gerado para visualização |
 | Container para imediatamente | Processo principal terminou. Use `docker logs` para investigar |
@@ -618,7 +644,8 @@ Antes de finalizar, verifique se você:
 - [ ] Conseguiu acessar o NGINX no navegador nas portas `8080` e `8081`
 - [ ] Modificou o conteúdo da página usando `docker exec`
 - [ ] Criou o servidor web personalizado (atividade final com diretório montado)
-- [ ] Capturou as screenshots necessárias
+- [ ] Removeu containers e imagens não utilizadas ao final do laboratório
+- [ ] Capturou as screenshots necessárias (com os nomes `screenshot-passo2.png`, `screenshot-passo5.png`, `screenshot-final.png`)
 - [ ] Respondeu às questões em `respostas.txt`
 
 ---
