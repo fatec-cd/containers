@@ -335,6 +335,9 @@ docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
 # Apenas os IDs dos containers em execução
 docker ps -q
 
+# Listar apenas containers finalizados (usando filtro)
+docker ps -a -f status=exited
+
 # Último container criado
 docker ps -l
 ```
@@ -426,12 +429,9 @@ docker kill webserver
 ```bash
 # Parar containers em execução
 docker stop webserver
-   
-   ```bash
-   docker version
-   docker info
-   ```
-docker rm -f container_name
+
+# Remover o container especificamente
+docker rm -f webserver
 
 # Remover TODOS os containers parados
 docker container prune
@@ -442,22 +442,15 @@ docker images
 # Remover imagens específicas
 docker rmi nginx busybox hello-world
 
-# Remover imagens não utilizadas
+# Relatar o espaço consumido por imagens e limpá-las caso não em uso
 docker image prune
+```
 
-   ```bash
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker $USER
-   # Reinicie a sessão para aplicar permissões
-   ```
 ## 🌐 5. Atividade Final – Servidor Web Personalizado
 
-   ```bash
-   docker version
-   docker info
-   ```
 #### 1. Clonar o repositório de exemplo
+
+Para termos arquivos reais de um site rodando facilmente em nossa aplicação:
 
 ```bash
 # Clonar repositório com conteúdo web
@@ -474,19 +467,19 @@ cd pratica-docker
 **Linux/macOS/GitHub Codespaces:**
 ```bash
 docker run -d --name meuweb \
-  -p 8080:80 \
+  -p 8081:80 \
   -v $(pwd):/usr/share/nginx/html:ro \
   nginx
 ```
 
 **Windows (PowerShell):**
 ```bash
-docker run -d --name meuweb -p 8080:80 -v ${PWD}:/usr/share/nginx/html:ro nginx
+docker run -d --name meuweb -p 8081:80 -v ${PWD}:/usr/share/nginx/html:ro nginx
 ```
 
 **Windows (CMD):**
 ```bash
-docker run -d --name meuweb -p 8080:80 -v %cd%:/usr/share/nginx/html:ro nginx
+docker run -d --name meuweb -p 8081:80 -v %cd%:/usr/share/nginx/html:ro nginx
 ```
 
 #### 3. Entendendo o comando
@@ -494,20 +487,19 @@ docker run -d --name meuweb -p 8080:80 -v %cd%:/usr/share/nginx/html:ro nginx
 **Detalhamento das flags:**
 - `-d`: Modo detached (background)
 - `--name meuweb`: Nome do container
-- `-p 8080:80`: Mapeia porta 8080 (host) → 80 (container)
+- `-p 8081:80`: Mapeia porta 8081 (host) → 80 (container) (diferente da porta 8080 usada anteriormente, para evitar conflitos de portas!)
 - `-v`: **Bind mount** - conecta diretório do host ao container
   - `$(pwd)` ou `${PWD}`: Diretório atual (onde está o repositório)
   - `/usr/share/nginx/html`: Diretório padrão do NGINX no container
   - `:ro`: **Read-only** - container só pode ler, não modificar
-- `nginx`: Imagem oficial do NGINX
+- `nginx`: Imagem oficial do NGINX baseado em Linux (Debian)
 
 #### 4. Acessar a aplicação
 
-- **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8080`, ou use o link automático gerado para `localhost:8080`
-- **Docker Desktop:** Acesse [http://localhost:8080](http://localhost:8080)
+- **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8081`, ou use o link automático gerado para `localhost:8081`
+- **Docker Desktop:** Acesse [http://localhost:8081](http://localhost:8081)
 
 **✅ Resultado esperado:** Você deve visualizar a página HTML do repositório sendo servida pelo NGINX.
-
 
 #### 5. Limpar o ambiente
 
@@ -516,7 +508,8 @@ docker run -d --name meuweb -p 8080:80 -v %cd%:/usr/share/nginx/html:ro nginx
 docker stop meuweb
 docker rm meuweb
 
-# O diretório do repositório permanece intacto!
+# Voltar um nível e conferir os dados originais intactos
+cd ..
 ls pratica-docker/
 ```
 
@@ -525,12 +518,14 @@ ls pratica-docker/
 
 Envie no **Microsoft Teams** 
 
-1. **Screenshots** :
-   - Página do NGINX padrão rodando
-   - Página modificada (Passo 5)
-   - Atividade final em execução
+1. **`comandos.txt`**: O arquivo com o histórico dos comandos executados durante o laboratório (conforme solicitado no Passo 4).
 
-2. **`respostas.txt`** com as questões abaixo:
+2. **Screenshots** :
+   - Página do NGINX padrão rodando (porta 8080)
+   - Página modificada (Passo 5)
+   - Atividade final em execução (porta 8081)
+
+3. **`respostas.txt`** com as questões abaixo:
 
 #### Questões obrigatórias:
 
@@ -613,30 +608,16 @@ Envie no **Microsoft Teams**
 
 ---
 
-## 🎯 9. Próximos Passos
-
-Após dominar este laboratório, explore:
-
-1. **Docker Compose** - Orquestrar múltiplos containers
-2. **Dockerfile** - Criar suas próprias imagens customizadas
-3. **Volumes nomeados** - Persistência de dados mais robusta
-4. **Redes Docker** - Comunicação entre containers
-5. **Docker Registry** - Criar registro privado de imagens
-6. **Multi-stage builds** - Otimizar tamanho de imagens
-7. **Docker Swarm** - Orquestração nativa do Docker
-8. **Kubernetes** - Orquestração em escala empresarial
-
-
-## 📋 10. Checklist de Conclusão
+## 📋 9. Checklist de Conclusão
 
 Antes de finalizar, verifique se você:
 
-- [ ] Executou todos os comandos do laboratório
+- [ ] Executou todos os comandos do laboratório e anotou no `comandos.txt`
 - [ ] Entendeu a diferença entre modo interativo e detached
-- [ ] Compreendeu as formas de identificar containers (ID, short ID, nome)
-- [ ] Conseguiu acessar o NGINX no navegador
+- [ ] Compreendeu as formas de identificar containers (ID, short ID, nome) e listar os finalizados com filtros
+- [ ] Conseguiu acessar o NGINX no navegador nas portas `8080` e `8081`
 - [ ] Modificou o conteúdo da página usando `docker exec`
-- [ ] Criou o servidor web personalizado (atividade final)
+- [ ] Criou o servidor web personalizado (atividade final com diretório montado)
 - [ ] Capturou as screenshots necessárias
 - [ ] Respondeu às questões em `respostas.txt`
 
