@@ -62,14 +62,27 @@ Ao contrário de uma **máquina virtual**, que virtualiza um sistema operacional
 
 ## ⚙️ 2. Pré-requisitos
 
-Você pode realizar este laboratório de duas formas:
+Você pode realizar este laboratório de três formas, com uma opção online oficial e duas alternativas:
 
-### 🧩 Opção 1 – Ambiente Online (sem instalação)
-1. Crie uma conta gratuita no **Docker Hub**: [https://hub.docker.com](https://hub.docker.com)
-2. Acesse **[Play With Docker (PWD)](https://labs.play-with-docker.com)**  
-   - Clique em **"Start"**  
-   - Aguarde a abertura de um terminal Linux online (válido por 2h)
-   - **Limitações:** Sem persistência após 4h, recursos limitados
+### ☁️ Opção 1 – GitHub Codespaces (online, recomendada)
+
+> **Caminho oficial sem instalação local.** Este repositório inclui uma configuração de dev container com **Docker-in-Docker**, permitindo executar o roteiro diretamente no navegador.
+
+1. Tenha uma conta no **GitHub**.
+2. Publique este material em um repositório GitHub ou utilize o repositório institucional já disponibilizado.
+3. No GitHub, abra o repositório e acesse **Code → Codespaces → Create codespace on main**.
+4. Aguarde a criação do ambiente.
+5. No terminal do Codespaces, valide o ambiente:
+   ```bash
+   docker version
+   docker info
+   ```
+
+**Observações importantes:**
+- O Codespaces executa um ambiente Linux hospedado na nuvem.
+- A porta `8080` já fica configurada para encaminhamento automático neste repositório.
+- Se o Docker não estiver disponível logo após abrir o ambiente, execute **Codespaces: Rebuild Container**.
+- Contas pessoais possuem franquia mensal; após o limite, o uso pode exigir forma de pagamento ou orçamento da organização.
 
 ### 💻 Opção 2 – Docker Desktop (Windows/Mac/Linux)
 1. **Windows/Mac:** Baixe o **Docker Desktop**:  
@@ -88,6 +101,15 @@ Você pode realizar este laboratório de duas formas:
    docker version
    docker info
    ```
+
+### 🧪 Opção 3 – Killercoda (online, alternativa secundária)
+
+O **Killercoda** oferece playgrounds online para laboratórios com containers sem instalação local. Ele pode ser usado como alternativa rápida, mas **não é o caminho oficial deste roteiro**, porque a experiência depende do playground escolhido e não fica tão integrada ao repositório quanto o Codespaces.
+
+Use esta opção apenas se:
+- você já tiver um playground Docker apropriado disponível;
+- aceitar uma experiência mais efêmera;
+- não precisar da mesma reprodutibilidade do ambiente configurado no Codespaces.
 
 ---
 
@@ -291,7 +313,7 @@ docker run -d --name webserver -p 8080:80 nginx
 - `nginx`: Nome da imagem a ser usada
 
 **Acessar o servidor:**
-- **Play With Docker:** Clique em "OPEN PORT" → Digite `8080`
+- **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8080`, ou use o link automático exibido no terminal para `localhost:8080`
 - **Docker Desktop:** Acesse [http://localhost:8080](http://localhost:8080)
 
 **Você deve ver:** A página padrão "Welcome to nginx!"
@@ -404,11 +426,11 @@ docker kill webserver
 ```bash
 # Parar containers em execução
 docker stop webserver
-
-# Remover containers específicos
-docker rm webserver 
-
-# Remover container à força (sem stop)
+   
+   ```bash
+   docker version
+   docker info
+   ```
 docker rm -f container_name
 
 # Remover TODOS os containers parados
@@ -423,18 +445,18 @@ docker rmi nginx busybox hello-world
 # Remover imagens não utilizadas
 docker image prune
 
-# CUIDADO: Remover tudo (containers, imagens, volumes, redes)
-docker system prune -a --volumes
-```
-
----
-
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+   sudo usermod -aG docker $USER
+   # Reinicie a sessão para aplicar permissões
+   ```
 ## 🌐 5. Atividade Final – Servidor Web Personalizado
 
-Nesta atividade, você irá implantar uma aplicação web customizada usando NGINX e volumes, servindo o conteúdo de um repositório Git.
-
-### 📋 Passos da Atividade
-
+   ```bash
+   docker version
+   docker info
+   ```
 #### 1. Clonar o repositório de exemplo
 
 ```bash
@@ -449,7 +471,7 @@ cd pratica-docker
 
 #### 2. Executar NGINX com bind mount
 
-**Linux/Mac/Play With Docker:**
+**Linux/macOS/GitHub Codespaces:**
 ```bash
 docker run -d --name meuweb \
   -p 8080:80 \
@@ -481,7 +503,7 @@ docker run -d --name meuweb -p 8080:80 -v %cd%:/usr/share/nginx/html:ro nginx
 
 #### 4. Acessar a aplicação
 
-- **Play With Docker:** Clique no botão **"OPEN PORT"** → Digite `8080`
+- **GitHub Codespaces:** Abra a aba **PORTS** e clique na porta `8080`, ou use o link automático gerado para `localhost:8080`
 - **Docker Desktop:** Acesse [http://localhost:8080](http://localhost:8080)
 
 **✅ Resultado esperado:** Você deve visualizar a página HTML do repositório sendo servida pelo NGINX.
@@ -498,7 +520,6 @@ docker rm meuweb
 ls pratica-docker/
 ```
 
----
 
 ## 📤 6. Entrega da Atividade
 
@@ -541,7 +562,8 @@ Envie no **Microsoft Teams**
 | Problema | Solução |
 |----------|---------|
 | "Port already allocated" | Outra aplicação usando a porta. Use porta diferente ou `docker stop` no container conflitante |
-| "Cannot connect to Docker daemon" | Docker Desktop não está rodando ou usuário sem permissão |
+| "Cannot connect to Docker daemon" | No Docker Desktop, verifique se o serviço está rodando. No GitHub Codespaces, reconstrua o dev container se o Docker não tiver iniciado corretamente |
+| Porta `8080` não abre no Codespaces | Abra a aba **PORTS**, confirme se a porta foi encaminhada e clique no link gerado para visualização |
 | Container para imediatamente | Processo principal terminou. Use `docker logs` para investigar |
 | "No such file or directory" em volumes | Caminho incorreto. Use caminho absoluto ou `$(pwd)` |
 | Imagem não encontrada | Verifique o nome. Use `docker pull` primeiro |
@@ -555,12 +577,18 @@ Envie no **Microsoft Teams**
 - [Docker CLI Reference](https://docs.docker.com/engine/reference/commandline/cli/) - Todos os comandos
 - [Dockerfile Reference](https://docs.docker.com/engine/reference/builder/) - Sintaxe do Dockerfile
 - [Docker Hub](https://hub.docker.com/) - Repositório oficial de imagens
+- [GitHub Codespaces](https://docs.github.com/en/codespaces) - Ambiente online oficial recomendado para este roteiro
 
 ### 🎓 Tutoriais e Cursos
-- [Play With Docker Classroom](https://training.play-with-docker.com/) - Tutoriais interativos gratuitos
+- [GitHub Codespaces Overview](https://docs.github.com/en/codespaces/overview) - Visão geral do serviço
+- [Port Forwarding in Codespaces](https://docs.github.com/en/codespaces/developing-in-a-codespace/forwarding-ports-in-your-codespace) - Como acessar aplicações web em execução no ambiente online
 - [Docker Labs](https://github.com/docker/labs) - Repositório oficial de laboratórios
 - [Docker Curriculum](https://docker-curriculum.com/) - Guia para iniciantes
-- [Katacoda Docker Scenarios](https://www.katacoda.com/courses/docker) - Cenários práticos
+- [Killercoda Playgrounds](https://killercoda.com/playgrounds) - Alternativa online para playgrounds efêmeros
+
+### 🧰 Ambiente do Repositório
+- Este repositório inclui `.devcontainer/devcontainer.json` para provisionar automaticamente o ambiente no GitHub Codespaces
+- A configuração usa o feature oficial `docker-in-docker` da especificação Dev Containers
 
 ### 📖 Livros e Guias
 - "Docker Deep Dive" - Nigel Poulton
